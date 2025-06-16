@@ -611,22 +611,6 @@
         .notification.error { background-color: var(--color-error); }
         .notification.info { background-color: var(--color-info); }
 
-        /* Responsive */
-        @media (max-width: 992px) {
-             .hero-visual {
-                display: none; /* Hide complex visual on smaller screens for simplicity */
-            }
-            .results-summary, .form-grid {
-                grid-template-columns: 1fr;
-            }
-            .hero-text {
-                text-align: center;
-            }
-        }
-        @media (max-width: 768px) {
-            h1 { font-size: 2.5rem; }
-            h2 { font-size: 1.75rem; }
-        }
     </style>
 </head>
 <body>
@@ -1226,6 +1210,9 @@
             // The URL provided by the user is inserted here.
             const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxz_CR4btAzaf-MdeCs_HiPZ1NErukeWeNbgswsZxuV-uCaaqTKiSyK00dD286JFbtQ/exec';
             
+            // Get the chart image as a Base64 string before preparing the data
+            const chartImage = window.myDimensionsChart.toBase64Image();
+
             // Flatten the data object to a single level for the spreadsheet row
             const rowData = {
                 timestamp: data.timestamp,
@@ -1256,19 +1243,22 @@
                 rowData[questionKey] = data.classificationResponses[q.id] || "";
             });
             
-            showNotification('Enviando respostas para a planilha...', 'info');
+            // Add the chart image to the final payload to be sent
+            const payload = { ...rowData, chartImage: chartImage };
+
+            showNotification('Enviando respostas e preparando seu e-mail...', 'info');
 
             fetch(SCRIPT_URL, {
                 method: 'POST',
                 mode: 'cors',
                 cache: 'no-cache',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(rowData),
+                body: JSON.stringify(payload),
             })
             .then(res => res.json())
             .then(response => {
                 if (response.result === 'success') {
-                    showNotification('Respostas salvas com sucesso na planilha!', 'success');
+                    showNotification('Respostas salvas e e-mail enviado com sucesso!', 'success');
                 } else {
                     throw new Error(response.message || 'Erro desconhecido ao salvar.');
                 }
@@ -1286,12 +1276,13 @@
                 return;
             }
             calculateResults();
-            
-            // Send data to Google Sheet
-            sendDataToSheet(assessmentData); 
-            
             showPage('results-dashboard');
             displayResults();
+            
+            // Send data after a short delay to ensure the chart is rendered
+            setTimeout(() => {
+                sendDataToSheet(assessmentData);
+            }, 500); 
         }
 
         function calculateResults() {
