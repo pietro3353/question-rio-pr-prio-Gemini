@@ -1205,15 +1205,11 @@
             return assessmentStructure.classification_questions.every(q => classificationData[q.id] !== null);
         }
         
-        // This function will send the data to the Google Sheet.
         function sendDataToSheet(data) {
-            // The URL provided by the user is inserted here.
             const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxz_CR4btAzaf-MdeCs_HiPZ1NErukeWeNbgswsZxuV-uCaaqTKiSyK00dD286JFbtQ/exec';
             
-            // Get the chart image as a Base64 string before preparing the data
             const chartImage = window.myDimensionsChart.toBase64Image();
 
-            // Flatten the data object to a single level for the spreadsheet row
             const rowData = {
                 timestamp: data.timestamp,
                 institutionName: data.institutional.name,
@@ -1229,7 +1225,15 @@
                 opportunities: data.opportunities.join(', '),
             };
 
-            // Add scores for each maturity question
+            // **CORREÇÃO AQUI**: Adicionar as pontuações de cada dimensão ao payload
+            assessmentStructure.dimensions.forEach(dim => {
+                const scoreData = data.scores[dim.id];
+                if(scoreData) {
+                    // Chave que corresponde à esperada pelo Apps Script (ex: "Contrato_score")
+                    rowData[`${scoreData.name}_score`] = scoreData.score; 
+                }
+            });
+
             assessmentStructure.dimensions.forEach(dim => {
                 dim.questions.forEach(q => {
                     const questionKey = `${dim.name} - ${q.id}`;
@@ -1237,13 +1241,11 @@
                 });
             });
 
-            // Add answers for each classification question
             assessmentStructure.classification_questions.forEach(q => {
                 const questionKey = `Class: ${q.text}`;
                 rowData[questionKey] = data.classificationResponses[q.id] || "";
             });
             
-            // Add the chart image to the final payload to be sent
             const payload = { ...rowData, chartImage: chartImage };
 
             showNotification('Enviando respostas e preparando seu e-mail...', 'info');
@@ -1279,7 +1281,6 @@
             showPage('results-dashboard');
             displayResults();
             
-            // Send data after a short delay to ensure the chart is rendered
             setTimeout(() => {
                 sendDataToSheet(assessmentData);
             }, 500); 
@@ -1400,7 +1401,6 @@
                 `;
                 grid.appendChild(resultCard);
             });
-            container.appendChild(grid);
         }
 
 
