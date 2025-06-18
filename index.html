@@ -1385,24 +1385,23 @@
 
 
         function displayClassificationResults() {
-    const container = document.getElementById('classification-results-container');
-    container.innerHTML = '';
-    
-    const grid = document.createElement('div');
-    grid.className = 'classification-results-grid';
+            const container = document.getElementById('classification-results-container');
+            container.innerHTML = '';
+            
+            const grid = document.createElement('div');
+            grid.className = 'classification-results-grid';
 
-    assessmentStructure.classification_questions.forEach(q => {
-        const answer = assessmentData.classificationResponses[q.id];
-        const resultCard = document.createElement('div');
-        resultCard.className = 'classification-result-card';
-        resultCard.innerHTML = `
-            <p class="question">${q.text}</p>
-            <p class="answer">${answer || 'Não respondido'}</p>
-        `;
-        grid.appendChild(resultCard);
-    });
-    // LINHA ADICIONADA PARA A CORREÇÃO
-    container.appendChild(grid);
+            assessmentStructure.classification_questions.forEach(q => {
+                const answer = assessmentData.classificationResponses[q.id];
+                const resultCard = document.createElement('div');
+                resultCard.className = 'classification-result-card';
+                resultCard.innerHTML = `
+                    <p class="question">${q.text}</p>
+                    <p class="answer">${answer || 'Não respondido'}</p>
+                `;
+                grid.appendChild(resultCard);
+            });
+            container.appendChild(grid);
         }
 
 
